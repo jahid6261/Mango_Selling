@@ -1,0 +1,64 @@
+services:
+
+  db:
+    image: postgres:15-alpine
+    container_name: mango-postgres-db
+
+    ports:
+      - "5432:5432"
+
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: jahid1234
+      POSTGRES_DB: mango_db
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d mango_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+    restart: always
+
+
+  web:
+    build: .
+    container_name: mango-fastapi
+
+    ports:
+      - "8000:8000"
+
+    volumes:
+      - .:/app
+
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    restart: always
+
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: mango-pgadmin
+
+    ports:
+      - "5050:80"
+
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    restart: always
+
+volumes:
+  postgres_data:
