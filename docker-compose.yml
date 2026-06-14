@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
 
   db:
@@ -23,6 +25,29 @@ services:
 
     restart: always
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: mango-rabbitmq
+
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+    restart: always
 
   web:
     build: .
@@ -39,9 +64,25 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
 
     restart: always
 
+  worker:
+    build: .
+    container_name: mango-celery
+
+    command: celery -A src.core.celery_app.celery_app worker --loglevel=info
+
+    volumes:
+      - .:/app
+
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+    restart: always
 
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -53,6 +94,8 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@admin.com
       PGADMIN_DEFAULT_PASSWORD: admin123
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin  
 
     depends_on:
       db:
@@ -62,3 +105,5 @@ services:
 
 volumes:
   postgres_data:
+  rabbitmq_data:
+  pgadmin_data:
