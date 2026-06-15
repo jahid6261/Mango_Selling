@@ -23,6 +23,8 @@ class UserModel(DBModel):
     number=Column(String(15),unique=True,index=True)
     address=Column(String(255),nullable=True)
     role=Column(Enum(UserRole),default=UserRole.user)
+    is_active = Column(Boolean, default=False)
+    activation_token = Column(String, nullable=True)
     
     created_at=Column(DateTime(timezone=True),server_default=func.now()) 
     updated_at=Column(DateTime(timezone=True), server_default=func.now(),onupdate=func.now())

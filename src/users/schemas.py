@@ -1,6 +1,6 @@
 from pydantic import BaseModel,EmailStr,Field
 from typing import Optional
-from src.users.models import UserRole
+from src.users.models import UserRole 
 
 
 
@@ -32,6 +32,7 @@ class UserProfileResponse(BaseModel):
     number:str
     address:str
     role:UserRole
+    is_active: bool 
         
         
     
