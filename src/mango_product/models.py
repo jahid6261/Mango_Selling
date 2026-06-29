@@ -28,7 +28,8 @@ class MangoProduct(DBModel):
     quantity = Column(Float, default=0.0)
     stock = Column(DECIMAL(10, 2), default=0.0)
     is_available = Column(Boolean, default=True)
-    image_url = Column(String(1024), nullable=True)
+    image_url = Column(String, nullable=True)
+
     category_id = Column(Integer, ForeignKey("categories.id", ondelete="CASCADE"), nullable=False)
     
 

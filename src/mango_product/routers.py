@@ -5,12 +5,16 @@ from src.utils.db import get_db
 from src.mango_product import services
 from src.mango_product.schemas import(CategoryResponse,CategoryRequest,CategoryUpdateRequest,CategoryBulkDeleteRequest,
                                       
-                                      MangoProductRequest,MangoProductResponse,MangoProductDeleteBulkRequest
+                                      MangoProductRequest,
+                                      MangoProductResponse,
+                                      MangoProductDeleteBulkRequest,
+                                      ReviewRequst,ReviewResponse
 
 
 )
 from typing import Optional 
 from src.depends.admin_check import require_admin
+from src.depends.auth_depends import require_user_id
 
                                         
 mango_product_routes=APIRouter(prefix="/products",tags=['Products'])
@@ -103,3 +107,19 @@ async def all_products(db:AsyncSession=Depends(get_db)):
 @mango_product_routes.delete("/products-delete-bulk")
 async def  product_delete_bulk(request:MangoProductDeleteBulkRequest,user=Depends(require_admin),db:AsyncSession=Depends(get_db)):
     return await services.product_delete_bulk(request,db)
+
+
+
+@mango_product_routes.post("/product-review",response_model=ReviewResponse)
+
+async def prodcut_review(request:ReviewRequst,
+                         db:AsyncSession=Depends(get_db),
+                         user=Depends(require_user_id)
+                         ):
+    
+
+    return await services.create_review(
+        request=request,
+        user_id=user['user_id'],
+        db=db
+    )

@@ -65,7 +65,7 @@ class MangoProductDeleteBulkRequest(BaseModel):
 
 class ReviewRequst(BaseModel):
     product_id:int
-    user_id:int
+    
     rating:int = Field(..., ge=1, le=5, description="rating must be between 1 and 5")
     comment:Optional[str]
 

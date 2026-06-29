@@ -3,7 +3,10 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.mango_product.models import Category,MangoProduct,Review
 from src.mango_product.schemas import( CategoryRequest,MangoProductRequest,CategoryResponse,CategoryUpdateRequest,
-                                      MangoProductResponse,CategoryBulkDeleteRequest,MangoProductDeleteBulkRequest
+                                      MangoProductResponse,
+                                      CategoryBulkDeleteRequest,
+                                      MangoProductDeleteBulkRequest,
+                                      ReviewRequst,ReviewResponse
                                       
 )
 from src.utils.db import DB_Session
@@ -11,7 +14,7 @@ from sqlalchemy import select,update,delete
 from fastapi import HTTPException,status
 from sqlalchemy import update, bindparam,or_, and_
 
-
+from src.orders.models import Order,OrderStatus
 
 
 async def create_category(request:CategoryRequest,db:AsyncSession):
@@ -246,3 +249,68 @@ async def product_delete_bulk(request:MangoProductDeleteBulkRequest,db:AsyncSess
     await db.commit()
 
     return {"message":f"{result.rowcount} product deleted successfully"}
+
+
+
+async def create_review(request:ReviewRequst,user_id:int,db:AsyncSession):
+
+    product= await  db.get(MangoProduct,request.product_id)
+
+    if not product:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="prdocut not found"
+        )
+    
+
+
+    result= await db.execute(select(Order).where(
+        Order.user_id==user_id,
+        Order.product_id==request.product_id,
+        Order.status==OrderStatus.COMPLETED
+    ))
+
+    order= result.scalars().first()
+
+
+    if not order:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="you can reviews only completres status"
+        )
+    
+
+
+    result = await db.execute(
+        select(Review).where(
+            Review.user_id == user_id,
+            Review.product_id == request.product_id
+        )
+    )
+
+    if result.scalars().first():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You have already reviewed this product."
+        )
+
+    review = Review(
+        user_id=user_id,
+        product_id=request.product_id,
+        rating=request.rating,
+        comment=request.comment
+    )
+
+    db.add(review)
+    await db.commit()
+    await db.refresh(review)
+
+    return review
+
+
+    
+
+
+
+
+

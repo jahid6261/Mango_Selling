@@ -5,8 +5,10 @@ import uvicorn
 from src.users.routers import users_routes
 from src.mango_product.routers import mango_product_routes
 from src.orders.routers import order_routes
+
 from src.core.routes.email_routes import router as email_router
 from src.seed.admin_seed import create_admin
+from src.admin.routers import admin_routes
 from src.utils.db import DB_Session
 
 
@@ -24,6 +26,7 @@ app.include_router(users_routes)
 app.include_router(mango_product_routes)
 app.include_router(order_routes)
 app.include_router(email_router)
+app.include_router(admin_routes)
 
 
 @app.get("/")
