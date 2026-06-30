@@ -16,6 +16,8 @@ from sqlalchemy import update, bindparam,or_, and_
 
 from src.orders.models import Order,OrderStatus
 
+from src.utils.cloudinary import upload_image
+from fastapi import UploadFile
 
 async def create_category(request:CategoryRequest,db:AsyncSession):
     new_category=Category(
@@ -148,10 +150,20 @@ async def category_bulk_delete(request:CategoryBulkDeleteRequest,db:AsyncSession
 
 # all product crud opperations will be here
 
+async def create_product(
+    request: MangoProductRequest,
+    db: AsyncSession,
+    image: UploadFile
+):
+    try:
+        upload_result = upload_image(image)
+    except Exception:
+        raise HTTPException(
+            status_code=500,
+            detail="Image upload failed"
+        )
 
-async def create_product(request:MangoProductRequest,db:AsyncSession):
-
-    new_product=MangoProduct(
+    new_product = MangoProduct(
         title=request.title.strip(),
         slug=request.slug.strip(),
         description=request.description.strip(),
@@ -159,22 +171,24 @@ async def create_product(request:MangoProductRequest,db:AsyncSession):
         quantity=request.quantity,
         stock=request.stock,
         is_available=request.is_available,
-        image_url=request.image_url.strip() if request.image_url else None,
+        image_url=upload_result["secure_url"],
+        image_public_id=upload_result["public_id"],
         category_id=request.category_id
-
-
-
     )
 
     db.add(new_product)
+
     try:
         await db.commit()
         await db.refresh(new_product)
     except Exception:
         await db.rollback()
-        raise Exception ("failed to create product")
-    return MangoProductResponse(
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to create product"
+        )
 
+    return MangoProductResponse(
         id=new_product.id,
         title=new_product.title,
         slug=new_product.slug,
@@ -186,8 +200,6 @@ async def create_product(request:MangoProductRequest,db:AsyncSession):
         image_url=new_product.image_url,
         category_id=new_product.category_id
     )
-
-
 
 async def get_products_processed(
     db: AsyncSession, 

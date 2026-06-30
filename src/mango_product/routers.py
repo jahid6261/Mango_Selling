@@ -1,5 +1,5 @@
 
-from fastapi import APIRouter,Depends,HTTPException,status,Query
+from fastapi import APIRouter,Depends,HTTPException,status,Query,File,UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.utils.db import get_db
 from src.mango_product import services
@@ -70,11 +70,14 @@ async def category_bulk_delete(request:CategoryBulkDeleteRequest,user=Depends(re
 
 # product cured routes
 
-@mango_product_routes.post("/create-product",response_model=MangoProductResponse)
-
-async def create_product(request:MangoProductRequest,user=Depends(require_admin),db:AsyncSession=Depends(get_db)):
-    return await services.create_product(request,db)
-
+@mango_product_routes.post("/create-product", response_model=MangoProductResponse)
+async def create_product(
+    request: MangoProductRequest = Depends(MangoProductRequest.as_form),
+    image: UploadFile = File(...),
+    user=Depends(require_admin),
+    db: AsyncSession = Depends(get_db),
+):
+    return await services.create_product(request, db, image)
 
 
 
