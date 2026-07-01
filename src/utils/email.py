@@ -3,14 +3,14 @@
 import smtplib
 
 from email.mime.text import MIMEText
+from src.utils.settings import settings
 
-from src.core.config import(
-    EMAIL_FROM,
-    EMAIL_PASSWORD,
-    EMAIL_USER,
-    EMAIL_HOST,
-    EMAIL_PORT
-)
+EMAIL_HOST = settings.EMAIL_HOST
+EMAIL_PORT = settings.EMAIL_PORT
+EMAIL_USER = settings.EMAIL_USER
+EMAIL_PASSWORD = settings.EMAIL_PASSWORD
+EMAIL_FROM = settings.EMAIL_FROM
+
 
 def email_utility(email_to,email_subject,email_body):
 

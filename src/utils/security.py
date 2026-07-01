@@ -1,8 +1,9 @@
 import jwt
 import bcrypt
 from datetime import datetime, timedelta, timezone
+from src.utils.settings import settings 
 
-SECRET_KEY = "8f3b1c9d7e2a4f6b8c1d0e9f7a6b5c4d2e1f9a8b7c6d5e4f3a2b1c0d9e8f7a6"
+SECRET_KEY = settings.SECRET_KEY
 ALGORITHM = "HS256"
 
 
